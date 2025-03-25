@@ -35,6 +35,11 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
-          git add app-versions.json
+          # Touch file if it doesn't exist
+          [ -f app-versions.json ] || echo '{}' > app-versions.json
+          # Create VERSION_REPORT.md if it doesn't exist
+          [ -f VERSION_REPORT.md ] || echo '# Initial Report' > VERSION_REPORT.md
+          # Add files and commit if there are changes
+          git add app-versions.json VERSION_REPORT.md
           git diff --quiet && git diff --staged --quiet || git commit -m "Update app versions [skip ci]"
           git push
