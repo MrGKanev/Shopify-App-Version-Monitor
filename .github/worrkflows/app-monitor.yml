@@ -1,0 +1,40 @@
+name: Shopify App Version Monitor
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+  workflow_dispatch:     # Allow manual triggering
+
+jobs:
+  check-app-versions:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm install @shopify/admin-api-client
+          npm install axios
+          npm install dotenv
+          
+      - name: Run app version checker
+        run: node app-version-checker.js
+        env:
+          SHOPIFY_API_KEY: ${{ secrets.SHOPIFY_API_KEY }}
+          SHOPIFY_API_SECRET: ${{ secrets.SHOPIFY_API_SECRET }}
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add app-versions.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update app versions [skip ci]"
+          git push
